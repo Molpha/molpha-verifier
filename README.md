@@ -1,6 +1,6 @@
 # molpha-verifier
 
-Framework-agnostic Rust library for verifying Molpha `DataUpdate` aggregate Schnorr signatures (secp256k1).
+Framework-independent Rust verifier for Molpha updates, compatible with Solana program and native Rust consumers.
 
 The downstream Solana program (or any other consumer) owns registry account types and I/O. This crate only takes plain data — no Anchor, Pinocchio, or `AccountInfo` dependency — and verifies the same checks as the EVM `Validator` reference path.
 
@@ -21,9 +21,9 @@ Optional helpers resolve ordered signers from a plain [`RegistryView`](src/state
 
 ```toml
 [dependencies]
-molpha-verifier = { git = "https://github.com/Molpha/molpha-verifier" }
+molpha-verifier = "0.1"
 # Optional: BorshSerialize/Deserialize on DataUpdate (161-byte layout)
-# molpha-verifier = { git = "...", features = ["borsh"] }
+# molpha-verifier = { version = "...", features = ["borsh"] }
 ```
 
 ## Usage
