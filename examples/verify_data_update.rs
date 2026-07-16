@@ -74,7 +74,10 @@ fn main() -> Result<(), DataUpdateError> {
     // 1. Decode the wire-format payload (e.g. from a `submit_data_update` instruction arg).
     let payload = DataUpdate::try_from_slice(&FIXTURE_BORSH).expect("fixture borsh must decode");
 
-    println!("decoded feed_id:        {:?}", ascii_prefix(&payload.feed_id));
+    println!(
+        "decoded feed_id:        {:?}",
+        ascii_prefix(&payload.feed_id)
+    );
     println!("decoded value:          {:?}", ascii_prefix(&payload.value));
     println!("registry_version:       {}", payload.registry_version);
     println!("signatures_required:    {}", payload.signatures_required);

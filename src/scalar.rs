@@ -139,11 +139,10 @@ pub fn mul_mod(a: &[u8; 32], b: &[u8; 32]) -> [u8; 32] {
 /// This is used to match `mulmod(..., LibSecp256k1.Q())` semantics exactly.
 fn mod_pow(base: &[u8; 32], exponent: &[u8; 32]) -> [u8; 32] {
     let exp = mod_reduce_once(*exponent);
-    let base_acc_init = mod_reduce_once(*base);
+    let base_red = mod_reduce_once(*base);
 
     let mut result = [0u8; 32];
     let mut seen = false;
-    let mut base_acc = [0u8; 32];
 
     for i in 0..256 {
         let bit = get_bit_be(&exp, i);
@@ -152,15 +151,14 @@ fn mod_pow(base: &[u8; 32], exponent: &[u8; 32]) -> [u8; 32] {
         }
 
         if !seen {
-            base_acc = base_acc_init;
-            result = base_acc_init;
+            result = base_red;
             seen = true;
             continue;
         }
 
-        base_acc = mul_mod(&base_acc, &base_acc);
+        result = mul_mod(&result, &result);
         if bit == 1 {
-            result = mul_mod(&result, &base_acc);
+            result = mul_mod(&result, &base_red);
         }
     }
 
@@ -447,6 +445,74 @@ mod tests {
         let b = be32_to_big(b);
         let rem = (&a * &b) % &n;
         big_to_be32(rem)
+    }
+
+    fn mod_pow_naive_reference(base: &[u8; 32], exponent: &[u8; 32]) -> [u8; 32] {
+        let exp = mod_reduce_once(*exponent);
+        let base_red = mod_reduce_once(*base);
+        let mut result = [0u8; 32];
+        result[31] = 1;
+        for i in 0..256 {
+            result = mul_mod(&result, &result);
+            if get_bit_be(&exp, i) == 1 {
+                result = mul_mod(&result, &base_red);
+            }
+        }
+        result
+    }
+
+    #[test]
+    fn mod_pow_matches_naive_reference() {
+        let mut base = [0u8; 32];
+        base[31] = 28;
+
+        for e in [1u32, 2, 3, 5, 6, 10, 100, 0] {
+            let mut exp = [0u8; 32];
+            if e != 0 {
+                exp[31] = e as u8;
+                if e > 255 {
+                    exp[30] = (e >> 8) as u8;
+                }
+            }
+            let expected = mod_pow_naive_reference(&base, &exp);
+            let got = mod_pow(&base, &exp);
+            assert_eq!(got, expected, "mod_pow mismatch for e={e}");
+        }
+
+        let mut a = [0u8; 32];
+        a[31] = 3;
+        assert_eq!(
+            mod_pow(&a, &SECP256K1_ORDER_MINUS_TWO),
+            mod_pow_naive_reference(&a, &SECP256K1_ORDER_MINUS_TWO),
+        );
+    }
+
+    #[test]
+    fn mod_pow_matches_bigint_small_exponents() {
+        let n = be32_to_big(&SECP256K1_ORDER);
+        let mut base = [0u8; 32];
+        base[31] = 28;
+
+        for e in [1u32, 2, 3, 5, 6, 10, 100] {
+            let mut exp = [0u8; 32];
+            exp[31] = e as u8;
+            if e > 255 {
+                exp[30] = (e >> 8) as u8;
+            }
+            let expected = big_to_be32(be32_to_big(&base).modpow(&BigUint::from(e), &n));
+            let got = mod_pow(&base, &exp);
+            assert_eq!(got, expected, "mod_pow mismatch for e={e}");
+        }
+    }
+
+    #[test]
+    fn inv_mod_for_three() {
+        let mut a = [0u8; 32];
+        a[31] = 3;
+        let inv = inv_mod(&a).expect("nonzero scalar");
+        let product = mul_mod(&a, &inv);
+        assert_eq!(product[31], 1);
+        assert!(product[..31].iter().all(|b| *b == 0));
     }
 
     #[test]

@@ -79,12 +79,17 @@ pub fn resolve_ordered_signers(
     let mut ordered = Vec::with_capacity(signer_count as usize);
     let mut entry_cursor = 0usize;
     for_each_set_bit_u256(signers, |bit_pos| {
+        let bit_pos = bit_pos as u32;
+        if bit_pos >= node_count {
+            return Err(DataUpdateError::InvalidSignersBitmap);
+        }
+
         let entry = entries
             .get(entry_cursor)
             .ok_or(DataUpdateError::MissingSignerAccount)?;
         entry_cursor = entry_cursor.saturating_add(1);
 
-        let expected_index = expected_node_index(bit_pos as u32, registry, apply_remove_remap);
+        let expected_index = expected_node_index(bit_pos, registry, apply_remove_remap);
         if entry.index != expected_index {
             return Err(DataUpdateError::InvalidNodeIndex);
         }
@@ -174,5 +179,37 @@ mod tests {
     fn expected_node_index_without_remove_remap_is_identity() {
         let registry = remove_swap_registry();
         assert_eq!(expected_node_index(4, &registry, false), 4);
+    }
+
+    #[test]
+    fn resolve_ordered_signers_rejects_out_of_range_bit_on_add_previous() {
+        let registry = RegistryView {
+            current_version: 2,
+            previous_version: 1,
+            previous_expires_at: 9_999,
+            current_node_count: 6,
+            previous_node_count: 5,
+            last_transition_type: RegistryTransitionType::Add,
+            removed_old_index: VIRTUAL_INDEX,
+            moved_old_index: VIRTUAL_INDEX,
+        };
+        let mut signers_bitmap = [0u8; 32];
+        signers_bitmap[0] = 1 << 5;
+
+        let entries = [NodeEntry {
+            index: 5,
+            x: [1u8; 32],
+            y: [2u8; 32],
+        }];
+
+        let err = resolve_ordered_signers(
+            &entries,
+            &registry,
+            registry.previous_version,
+            &signers_bitmap,
+            0,
+        )
+        .unwrap_err();
+        assert_eq!(err, DataUpdateError::InvalidSignersBitmap);
     }
 }

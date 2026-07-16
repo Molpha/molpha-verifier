@@ -90,8 +90,11 @@ fn arb_fixture_pubkey_subset() -> impl Strategy<Value = Vec<PublicKey>> {
         indices
             .into_iter()
             .map(|i| {
-                PublicKey::parse_slice(&FIXTURE_COMPRESSED_KEYS[i], Some(PublicKeyFormat::Compressed))
-                    .unwrap()
+                PublicKey::parse_slice(
+                    &FIXTURE_COMPRESSED_KEYS[i],
+                    Some(PublicKeyFormat::Compressed),
+                )
+                .unwrap()
             })
             .collect()
     })
