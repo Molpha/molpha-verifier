@@ -1,14 +1,14 @@
 [package]
 name = "molpha-verifier"
 version = "0.1.0"
-description = "Molpha framework-agnostic DataUpdate aggregate-Schnorr verification"
+description = "Solana program library for verifying Molpha threshold-signed oracle updates"
 edition = "2021"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/Molpha/molpha-verifier"
 homepage = "https://molpha.io"
-keywords = ["schnorr", "secp256k1", "molpha", "signature-verification", "aggregate-signatures"]
-categories = ["cryptography", "cryptography::cryptocurrencies"]
+keywords = ["schnorr", "secp256k1", "oracle", "solana", "cryptography"]
+categories = ["cryptography"]
 
 [lib]
 name = "molpha_verifier"
