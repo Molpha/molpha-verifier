@@ -43,6 +43,15 @@ jobs:
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
 
+      - name: Documentation
+        run: cargo doc --no-deps --all-features
+      
+      - name: Package
+        run: cargo package --locked
+        
+      - name: Check examples
+        run: cargo check --examples --all-features
+
       - name: Test (default features)
         run: cargo test
 

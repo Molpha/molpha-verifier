@@ -27,3 +27,7 @@ borsh = { version = "0.10.3", optional = true }
 [dev-dependencies]
 num-bigint = "0.4.6"
 proptest = "1.6"
+
+[[example]]
+name = "verify_data_update"
+required-features = ["borsh"]
