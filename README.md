@@ -22,7 +22,7 @@ Optional helpers resolve ordered signers from a plain [`RegistryView`](src/state
 ```toml
 [dependencies]
 molpha-verifier = "0.1"
-# Optional: BorshSerialize/Deserialize on DataUpdate (161-byte layout)
+# Optional: BorshSerialize/Deserialize on DataUpdate (variable-length Borsh; length-prefixed value)
 # molpha-verifier = { version = "...", features = ["borsh"] }
 ```
 
@@ -83,7 +83,7 @@ The caller must owner-check and deserialize accounts; this crate only validates 
 | Feature | Effect |
 | --- | --- |
 | *(default)* | Pure verification; no Borsh |
-| `borsh` | Derive Borsh on `DataUpdate` |
+| `borsh` | Derive Borsh on `DataUpdate` (length-prefixed `value`) |
 
 ## Development
 

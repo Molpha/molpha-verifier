@@ -136,7 +136,7 @@ fn arb_data_update() -> impl Strategy<Value = DataUpdate> {
     (
         any::<[u8; 32]>(),
         any::<u32>(),
-        any::<[u8; 32]>(),
+        prop::collection::vec(any::<u8>(), 0..=256),
         any::<i64>(),
         any::<u8>(),
         any::<[u8; 32]>(),

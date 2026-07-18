@@ -270,7 +270,7 @@ mod tests {
         DataUpdate {
             feed_id: FIXTURE_FEED_ID,
             registry_version: FIXTURE_REGISTRY_VERSION,
-            value: FIXTURE_VALUE,
+            value: FIXTURE_VALUE.to_vec(),
             canonical_timestamp: FIXTURE_CANONICAL_TIMESTAMP,
             signatures_required: FIXTURE_SIGNATURES_REQUIRED,
             agg_sig_s: FIXTURE_S,
