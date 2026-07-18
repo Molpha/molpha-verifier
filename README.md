@@ -1,4 +1,5 @@
 # molpha-verifier
+[![crate](https://img.shields.io/crates/v/molpha-verifier?&label=molpha-verifier&color=ffc933)](https://crates.io/crates/molpha-verifier)
 
 Framework-independent Rust verifier for Molpha updates, compatible with Solana program and native Rust consumers.
 
