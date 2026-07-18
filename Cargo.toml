@@ -1,6 +1,6 @@
 [package]
 name = "molpha-verifier"
-version = "0.1.0"
+version = "0.2.0"
 description = "Molpha framework-agnostic DataUpdate aggregate-Schnorr verification"
 edition = "2021"
 license = "MIT"
