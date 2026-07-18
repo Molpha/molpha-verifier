@@ -9,7 +9,7 @@ use molpha_verifier::{
         effective_selection_size, for_each_set_bit, validate_bitmap_upper_bits_clear,
     },
     coalition::CoalitionAccumulator,
-    message::compute_message_hash,
+    message::{compute_message_hash, value_commitment},
     payload::DataUpdate,
     scalar::{mul_mod, secp256k1_scalar_is_valid_nonzero},
     selection::derive_selection_bitmap,
@@ -136,7 +136,6 @@ fn arb_data_update() -> impl Strategy<Value = DataUpdate> {
     (
         any::<[u8; 32]>(),
         any::<u32>(),
-        any::<[u8; 32]>(),
         any::<i64>(),
         any::<u8>(),
         any::<[u8; 32]>(),
@@ -147,7 +146,6 @@ fn arb_data_update() -> impl Strategy<Value = DataUpdate> {
             |(
                 feed_id,
                 registry_version,
-                value,
                 canonical_timestamp,
                 signatures_required,
                 agg_sig_s,
@@ -157,7 +155,6 @@ fn arb_data_update() -> impl Strategy<Value = DataUpdate> {
                 DataUpdate {
                     feed_id,
                     registry_version,
-                    value,
                     canonical_timestamp,
                     signatures_required,
                     agg_sig_s,
@@ -357,10 +354,37 @@ proptest! {
     #[test]
     fn compute_message_hash_is_deterministic(
         payload in arb_data_update(),
-        sig_req in any::<u8>(),
+        raw in prop::collection::vec(any::<u8>(), 0..100),
     ) {
-        let a = compute_message_hash(&payload, sig_req);
-        let b = compute_message_hash(&payload, sig_req);
+        let a = compute_message_hash(&payload, &raw);
+        let b = compute_message_hash(&payload, &raw);
         prop_assert_eq!(a, b);
+    }
+
+    #[test]
+    fn compute_message_hash_is_sensitive_to_raw_value(
+        payload in arb_data_update(),
+        raw in prop::collection::vec(any::<u8>(), 1..100),
+        flip in 1u8..,
+    ) {
+        let base = compute_message_hash(&payload, &raw);
+        let mut tampered = raw.clone();
+        tampered[0] ^= flip;
+        prop_assert_ne!(compute_message_hash(&payload, &tampered), base);
+
+        // Length change (drop last byte) also changes the hash.
+        let shortened = &raw[..raw.len() - 1];
+        prop_assert_ne!(compute_message_hash(&payload, shortened), base);
+    }
+
+    #[test]
+    fn value_commitment_is_deterministic_and_len_matches(
+        raw in prop::collection::vec(any::<u8>(), 0..100),
+    ) {
+        let (hash_a, len_a) = value_commitment(&raw);
+        let (hash_b, len_b) = value_commitment(&raw);
+        prop_assert_eq!(len_a, raw.len() as u32);
+        prop_assert_eq!(len_a, len_b);
+        prop_assert_eq!(hash_a, hash_b);
     }
 }
