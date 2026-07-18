@@ -9,8 +9,10 @@
 //! ```ignore
 //! use molpha_verifier::{verify_data_update, DataUpdate};
 //!
-//! // `ordered_signers` are the signing nodes' (x, y) pubkeys in ascending signers_bitmap bit order.
-//! verify_data_update(&payload, node_count, redundancy_buffer, &ordered_signers)?;
+//! // `raw_value` is the raw feed value carried alongside the payload; it is hashed into the
+//! // signed message (`keccak256` + length). `ordered_signers` are the signing nodes' (x, y)
+//! // pubkeys in ascending signers_bitmap bit order.
+//! verify_data_update(&payload, raw_value, node_count, redundancy_buffer, &ordered_signers)?;
 //! ```
 
 pub mod bitmap;
@@ -22,6 +24,8 @@ pub mod payload;
 pub mod scalar;
 pub mod selection;
 pub mod state;
+#[cfg(test)]
+mod test_signer;
 pub mod verify;
 
 pub use error::DataUpdateError;
@@ -41,7 +45,7 @@ pub use bitmap::{
     for_each_set_bit_u256,
 };
 pub use coalition::CoalitionAccumulator;
-pub use message::{compute_message_hash, MESSAGE_PREFIX};
+pub use message::{compute_message_hash, value_commitment, MESSAGE_PREFIX};
 pub use scalar::{
     eth_address_from_uncompressed_pubkey, evm_schnorr_ecdsa_inputs,
     secp256k1_scalar_is_valid_nonzero,

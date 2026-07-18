@@ -106,6 +106,7 @@ pub fn resolve_ordered_signers(
 #[allow(clippy::too_many_arguments)]
 pub fn verify_data_update_resolved(
     payload: &DataUpdate,
+    raw_value: &[u8],
     registry: &RegistryView,
     redundancy_buffer: u8,
     now: i64,
@@ -118,7 +119,7 @@ pub fn verify_data_update_resolved(
         &payload.signers_bitmap,
         now,
     )?;
-    verify_data_update(payload, node_count, redundancy_buffer, &ordered)
+    verify_data_update(payload, raw_value, node_count, redundancy_buffer, &ordered)
 }
 
 #[allow(clippy::too_many_arguments)]
