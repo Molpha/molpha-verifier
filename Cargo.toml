@@ -1,13 +1,12 @@
 [package]
 name = "molpha-verifier"
-version = "0.2.0"
+version = "0.1.0"
 description = "Solana program library for verifying Molpha threshold-signed oracle updates"
 edition = "2021"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/Molpha/molpha-verifier"
 homepage = "https://molpha.io"
-documentation = "https://docs.rs/molpha-verifier"
 keywords = ["schnorr", "secp256k1", "oracle", "solana", "cryptography"]
 categories = ["cryptography"]
 
@@ -26,9 +25,6 @@ ethnum = { version = "1.5", default-features = false }
 borsh = { version = "0.10.3", optional = true }
 
 [dev-dependencies]
-# Test builds additionally need the static multiplication context for `PublicKey::from_secret_key`
-# (used by the test-only aggregate Schnorr signer); the library itself stays context-free.
-libsecp256k1 = { version = "0.6.0", default-features = false, features = ["static-context"] }
 num-bigint = "0.4.6"
 proptest = "1.6"
 

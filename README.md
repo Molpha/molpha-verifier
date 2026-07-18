@@ -7,15 +7,13 @@ The downstream Solana program (or any other consumer) owns registry account type
 
 ## What it verifies
 
-The signed message commits to the feed value as `value_hash = keccak256(raw_value)` plus `value_len = raw_value.len()` — nodes sign the hash and length of the exact value, not the value itself — so raw values of any length are supported. Those fields are derived from the raw bytes at verify time and are not stored on the wire [`DataUpdate`](src/payload.rs).
-
-Given a signed `DataUpdate`, its raw value, and the signing nodes' secp256k1 pubkeys, verification:
+Given a signed [`DataUpdate`](src/payload.rs) and the signing nodes' secp256k1 pubkeys, verification:
 
 1. Rejects an invalid / zero aggregate scalar `s`
 2. Enforces `popcount(signers_bitmap) ≥ signatures_required`
 3. Re-derives the deterministic selection bitmap and requires `signers ⊆ selection`
 4. Reconstructs the coalition key `Σ X_i` from ordered signer pubkeys
-5. Hashes the EVM-compatible message (`MOLPHA_MESSAGE_V1` domain), deriving value commitment from `raw_value`
+5. Hashes the EVM-compatible message (`MOLPHA_MESSAGE_V1` domain)
 6. Recovers the commitment address via the Schnorr→ECDSA trick and matches `commitment_addr`
 
 Optional helpers resolve ordered signers from a plain [`RegistryView`](src/state.rs) + [`NodeEntry`](src/state.rs) slice, including previous-version remove-transition remapping.
@@ -24,8 +22,8 @@ Optional helpers resolve ordered signers from a plain [`RegistryView`](src/state
 
 ```toml
 [dependencies]
-molpha-verifier = "0.2"
-# Optional: BorshSerialize/Deserialize on DataUpdate (129-byte layout)
+molpha-verifier = "0.1"
+# Optional: BorshSerialize/Deserialize on DataUpdate (161-byte layout)
 # molpha-verifier = { version = "...", features = ["borsh"] }
 ```
 
@@ -36,13 +34,10 @@ molpha-verifier = "0.2"
 ```rust
 use molpha_verifier::{verify_data_update, DataUpdate, SignerXy};
 
-// `raw_value`: the raw feed value carried alongside the payload; hashed into the
-// signed message (`keccak256` + length). Wrong bytes fail signature verification.
 // `ordered_signers`: one (x, y) per set bit of `payload.signers_bitmap`,
 // in ascending bit-index order (same order as EVM Validator.verify).
 verify_data_update(
     &payload,
-    raw_value,
     node_count,
     redundancy_buffer,
     &ordered_signers,
@@ -60,7 +55,6 @@ use molpha_verifier::{
 
 verify_data_update_resolved(
     &payload,
-    raw_value,
     &registry,
     redundancy_buffer,
     now,
@@ -78,7 +72,7 @@ The caller must owner-check and deserialize accounts; this crate only validates 
 | `verify` | High-level verify + coalition reconstruction |
 | `onchain` | Signer resolution over `RegistryView` / `NodeEntry` |
 | `selection` | Deterministic selection bitmap (`MOLPHA_SELECTION_V1`) |
-| `message` | EVM-compatible message hash (`MOLPHA_MESSAGE_V1`) and the `value_commitment` helper |
+| `message` | EVM-compatible message hash (`MOLPHA_MESSAGE_V1`) |
 | `bitmap` | u256 bitmap helpers and group sampling |
 | `coalition` | secp256k1 point sum accumulator |
 | `scalar` | Schnorr→ECDSA inputs, ETH address from pubkey |
